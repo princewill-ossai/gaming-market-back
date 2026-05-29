@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ListingsModule } from './listings/listings.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -8,6 +9,7 @@ import { ListingsModule } from './listings/listings.module';
       isGlobal: true,
     }),
     ListingsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
