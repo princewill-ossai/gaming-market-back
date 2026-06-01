@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { getSupabase } from '../Supabase/supabase.client';
+import { redis } from '../redis/redis.client';
 
 @Injectable()
 export class ListingsService {
@@ -42,12 +43,21 @@ export class ListingsService {
       .select();
 
     if (error) throw error;
+    await redis.del('listings');
 
     return data;
   }
 
   async getAll() {
     const supabase = getSupabase();
+    const cachedListings = await redis.get('listings');
+
+    if (cachedListings) {
+      console.log('REDIS HIT');
+      return cachedListings;
+    }
+
+    console.log('SUPABASE HIT');
 
     const { data, error } = await supabase
       .from('listings')
@@ -56,14 +66,18 @@ export class ListingsService {
 
     if (error) throw error;
 
+    await redis.set('listings', data, {
+      ex: 300,
+    });
+
     return data;
   }
 
   async markAsSold(id: string) {
-    console.log('🔥🔥 MARK AS SOLD FUNCTION RUNNING');
+    console.log('MARK AS SOLD FUNCTION RUNNING');
     const supabase = getSupabase();
 
-    console.log("BEFORE UPDATE");
+    console.log('BEFORE UPDATE');
 
     const { data, error } = await supabase
       .from('listings')
@@ -71,16 +85,17 @@ export class ListingsService {
       .eq('id', id)
       .select();
 
-    console.log("AFTER UPDATE:", data);
-    console.log("ERROR:", error);
+    console.log('AFTER UPDATE:', data);
+    console.log('ERROR:', error);
 
     if (error) throw error;
+    await redis.del('listings');
 
     return data;
   }
 
   async deleteListing(id: string) {
-    console.log('🗑️🗑️ DELETE FUNCTION RUNNING');
+    console.log('DELETE FUNCTION RUNNING');
     const supabase = getSupabase();
 
     const { data, error } = await supabase
@@ -89,6 +104,7 @@ export class ListingsService {
       .eq('id', id);
 
     if (error) throw error;
+    await redis.del('listings');
 
     return data;
   }

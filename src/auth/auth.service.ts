@@ -12,12 +12,10 @@ export class AuthService {
   };
 
   async login(email: string, password: string) {
-    // 1. CHECK EMAIL FIRST
     if (email !== this.admin.email) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // 2. CHECK PASSWORD PROPERLY
     const isPasswordValid = await bcrypt.compare(
       password,
       this.admin.passwordHash,
@@ -27,7 +25,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // 3. ONLY HERE — GENERATE TOKEN
     const token = this.jwtService.sign({
       email: this.admin.email,
       role: 'admin',
