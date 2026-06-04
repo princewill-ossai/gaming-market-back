@@ -20,11 +20,12 @@ export class JwtGuard implements CanActivate {
 
     const token = authHeader.split(' ')[1];
 
+    if (!token) {
+      throw new UnauthorizedException('Invalid token format')
+    }
+
     try {
-      const decoded = jwt.verify(
-        token,
-        'SUPER_SECRET_KEY',
-      );
+      const decoded = jwt.verify(token, 'SUPER_SECRET_KEY');
 
       request.user = decoded;
 
